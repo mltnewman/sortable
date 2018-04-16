@@ -176,8 +176,47 @@
       }
       return node.textContent.replace(trimRegExp, '');
     },
-    setupTypes: function(types) {
+    setupTypes: function(customOptions) {
       var type, _i, _len, _results;
+      const defaultOptions = [
+        {
+          name: 'numeric',
+          defaultSortDirection: 'descending',
+          match: function(a) {
+            return a.match(numberRegExp);
+          },
+          comparator: function(a) {
+            return parseFloat(a.replace(/[^0-9.-]/g, ''), 10) || 0;
+          }
+        }, {
+          name: 'date',
+          defaultSortDirection: 'ascending',
+          reverse: true,
+          match: function(a) {
+            return !isNaN(Date.parse(a));
+          },
+          comparator: function(a) {
+            return Date.parse(a) || 0;
+          }
+        }, {
+          name: 'alpha',
+          defaultSortDirection: 'ascending',
+          match: function() {
+            return true;
+          },
+          compare: function(a, b) {
+            return a.localeCompare(b);
+          }
+        }
+      ];
+      const types = defaultOptions.map(type => {
+        for(let i = 0; i < customOptions.length; i++) {
+          if(customOptions[i].name === type.name) {
+            return Object.assign({}, type, customOptions[i]);
+          }
+          return type;
+        }
+      })
       sortable.types = types;
       sortable.typesObject = {};
       _results = [];
@@ -188,41 +227,7 @@
       return _results;
     }
   };
-
-  sortable.setupTypes([
-    {
-      name: 'numeric',
-      defaultSortDirection: 'descending',
-      match: function(a) {
-        return a.match(numberRegExp);
-      },
-      comparator: function(a) {
-        return parseFloat(a.replace(/[^0-9.-]/g, ''), 10) || 0;
-      }
-    }, {
-      name: 'date',
-      defaultSortDirection: 'ascending',
-      reverse: true,
-      match: function(a) {
-        return !isNaN(Date.parse(a));
-      },
-      comparator: function(a) {
-        return Date.parse(a) || 0;
-      }
-    }, {
-      name: 'alpha',
-      defaultSortDirection: 'ascending',
-      match: function() {
-        return true;
-      },
-      compare: function(a, b) {
-        return a.localeCompare(b);
-      }
-    }
-  ]);
-
-  setTimeout(sortable.init, 0);
-
+  
   if (typeof define === 'function' && define.amd) {
     define(function() {
       return sortable;
